@@ -187,7 +187,9 @@ class ProductDetailsComponent implements OnInit {
 </p>
 
 <div class="cart-item" *ngFor="let item of items">
-  <span>{{ item.name }}</span>
+  <a [routerLink]="['/products', item.id]">
+    <span>{{ item.name }}</span>
+  </a>
   <span>{{ item.price | currency }}</span>
 </div>`
 })
