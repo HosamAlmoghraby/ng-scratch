@@ -1,9 +1,10 @@
-import { Component, OnInit, NgModule, Injectable, Input, Output, EventEmitter } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule, Component, OnInit, Injectable, Input, Output, EventEmitter } from '@angular/core';
 import { RouterModule, Routes, ActivatedRoute } from '@angular/router';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder } from "@angular/forms";
 
 
 
@@ -56,7 +57,7 @@ class CartService {
     this._items.push(product);
   }
   
-  public clearCar(): any[] {
+  public clearCart(): any[] {
     this._items = []
     return this._items;
   }
@@ -146,7 +147,7 @@ class ProductAlertsComponent {
 
 <div *ngIf="product">
   <h3>{{ product.name }}</h3>
-  <h4>{{ product.price | currency }}</h4>
+  <h4>{{ product.price | currency:'EUR' }}</h4>
   <p>{{ product.description }}</p>
   <button (click)="addToCart(product)">Add to Cart</button>
   
@@ -190,15 +191,46 @@ class ProductDetailsComponent implements OnInit {
   <a [routerLink]="['/products', item.id]">
     <span>{{ item.name }}</span>
   </a>
-  <span>{{ item.price | currency }}</span>
-</div>`
+  <span>{{ item.price | currency:'EUR' }}</span>
+</div>
+
+<form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()">
+
+  <div>
+    <label for="name">
+      Name
+    </label>
+    <input id="name" type="text" formControlName="name">
+  </div>
+
+  <div>
+    <label for="address">
+      Address
+    </label>
+    <input id="address" type="text" formControlName="address">
+  </div>
+
+  <button class="button" type="submit">Purchase</button>
+
+</form>`
 })
 class CartComponent{
   items: any[] = this.cartService.items;
+  checkoutForm: any = this.formBuilder.group({
+    name: '',
+    address: ''
+  });
   
   constructor(
-    private cartService: CartService
+    private cartService: CartService,
+    private formBuilder: FormBuilder
     ) { }
+  
+    onSubmit() {
+      this.items = this.cartService.clearCart();
+      console.warn('Your order has been submitted', this.checkoutForm.value);
+      this.checkoutForm.reset();
+    }
     
   }
 //////////////////////////////////////////////////////////////
@@ -210,14 +242,14 @@ class CartComponent{
 
 <div class="shipping-item" *ngFor="let shipping of shippingCosts | async">
   <span>{{ shipping.type }}</span>
-  <span>{{ shipping.price | currency }}</span>
+  <span>{{ shipping.price | currency:'EUR' }}</span>
 </div>`
 })
 class ShippingComponent {
   shippingCosts: any = this.cartService.getShippingPrices();
   
 constructor(
-  private cartService: CartService
+  private cartService: CartService,
   ) { }
   
 }
@@ -234,6 +266,7 @@ constructor(
   ],
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     RouterModule.forRoot([
       { path: "", component: ProductListComponent },
       { path: "products/:productId", component: ProductDetailsComponent },
